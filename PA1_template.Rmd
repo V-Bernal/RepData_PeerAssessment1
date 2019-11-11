@@ -1,10 +1,8 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: 'Reproducible Research: Peer Assessment 1'
 author: "Victor Bernal"
 date: "`r format(Sys.Date(), '%d %B, %Y')`"
-output: 
-  html_document:
-    keep_md: true
+output: "html_document"
 ---
 
 ```{r setup, include=FALSE, echo=TRUE, tidy=TRUE}
