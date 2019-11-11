@@ -1,22 +1,21 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 author: "Victor Bernal"
-date: "`r format(Sys.Date(), '%d %B, %Y')`"
+date: "11 november, 2019"
 output: 
   html_document:
     keep_md: true
 ---
 
-```{r setup, include=FALSE, echo=TRUE, tidy=TRUE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 # Synopsis
 
 Here we analyse data about personal movement collected by activity monitoring devices e.g. Fitbit, Nike Fuelband, or Jawbone Up. Activity data is collected at 5 minute intervals through out the day during October and November, 2012 and include the number of steps taken in 5 minute intervals each day. For more details <https://www.coursera.org/learn/reproducible-research/peer/gYyPt/course-project-1>.
 
 ## Loading and preprocessing the data
-```{r}
+
+```r
 # Uncomment to download the file
 
 #library(formatR)
@@ -31,15 +30,15 @@ if(!file.exists('activity.csv')) {
   unzip(zipfile='activity.zip')
   DATA <- read.csv('activity.csv')
     }
-
 ```
 
 # What is mean total number of steps taken per day?
 The variables included in this dataset are 
-`r colnames(DATA)` and there are a total of 
-`r nrow(DATA)` observations in this dataset. 
+steps, date, interval and there are a total of 
+17568 observations in this dataset. 
 
-```{r , echo = TRUE}
+
+```r
 DATA$date<-as.factor(DATA$date)
 
 total_steps<-by(DATA$steps, DATA$date, function(x){sum(x, na.rm = TRUE)} )
@@ -51,10 +50,13 @@ text(x=-3000+mean(total_steps, na.rm=TRUE), y = 15,"mean", col='blue')
 text(x= 3000+median(total_steps, na.rm=TRUE), y = 12,"median", col='red')
 ```
 
-The mean is `r round(mean(total_steps, na.rm=TRUE))`, and the median is `r signif(median(total_steps, na.rm=TRUE),4)`.
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+The mean is 9354, and the median is 1.04\times 10^{4}.
 
 # What is the average daily activity pattern?
-```{r, echo = TRUE}
+
+```r
 DATA$interval<-as.factor(DATA$interval)
 steps_5min<-by(DATA$steps, DATA$interval, function(x){mean(x, na.rm = TRUE)} )
 se_5min<-by(DATA$steps, DATA$interval, function(x){sd(x, na.rm = TRUE)/sqrt(sum(!is.na(x)))} )
@@ -67,15 +69,18 @@ abline(h=max(steps_5min, na.rm=TRUE),  col=rgb(0.5,0,0,0.5))
 abline(v=as.numeric(as.matrix(unique(DATA$interval)))[which(steps_5min==max(steps_5min, na.rm=TRUE))], col=rgb(0.5,0,0,0.5))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
 ## Imputing missing values
 Replace each missing value with the mean value of its 5-minute interval. There are
-`r sum(is.na(DATA$steps))` NAs in steps,
-`r sum(is.na(DATA$interval))` NAs in interval,
-`r sum(is.na(DATA$date))` NAs in date. There are only Nas in steps.
+2304 NAs in steps,
+0 NAs in interval,
+0 NAs in date. There are only Nas in steps.
 
 ## Impute the NA with the interval's mean. 
 
-```{r, echo = TRUE}
+
+```r
 IMPUTED_DATA <- DATA 
 
 ave_interval<-aggregate(DATA$steps, list(DATA$interval), FUN=function(x){mean(x,na.rm=TRUE)})
@@ -86,7 +91,8 @@ idx<- match( DATA$interval[is.na(DATA$steps)] , ave_interval$interval)
 IMPUTED_DATA$steps[is.na(DATA$steps)]<- ave_interval$ave[idx] 
 imputed_total_steps<-by(IMPUTED_DATA$steps, IMPUTED_DATA$date, function(x){sum(x, na.rm = TRUE)} )
 ```
-```{r, echo = TRUE}
+
+```r
 hist(total_steps, main='', breaks = 15, col = rgb(0.5,0.5,0.5,0.3), xlab='total steps by day' , ylim = c(0,30))
 hist(imputed_total_steps, main='', breaks = 15, col = rgb(0.5,0,0,0.3),  add=TRUE)
 legend(x=12000,y=30, 
@@ -99,11 +105,14 @@ abline(v = median(imputed_total_steps, na.rm=TRUE), col="red", lwd=2)
 text(x= -4000+ round(mean(imputed_total_steps, na.rm=TRUE)), y = 15,"new mean", col='blue')
 text(x= 4000+ round(median(imputed_total_steps, na.rm=TRUE)), y = 15,"new median", col='red')
 ```
-The mean is `r round(mean(imputed_total_steps, na.rm=TRUE))`, and the median is `r signif(median(imputed_total_steps, na.rm=TRUE),4)`.
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+The mean is 1.0766\times 10^{4}, and the median is 1.077\times 10^{4}.
 
 # Differences between weekdays and weekends.
 How many weekdays/ends are in the data?
-```{r, echo = TRUE, comment = ""}
+
+```r
 #class(IMPUTED_DATA$date) # change to format Date
 
 IMPUTED_DATA$date <- as.Date(IMPUTED_DATA$date)
@@ -122,22 +131,36 @@ wday<-subset(IMPUTED_DATA, day=="weekday", select=c(steps, interval))
 
 wend_steps_5min<-by(wend$steps, wend$interval, function(x){mean(x, na.rm = TRUE)} )
 wdays_steps_5min<-by(wday$steps, wday$interval, function(x){mean(x, na.rm = TRUE)} )
-
 ```
 Are there differences in activity patterns between weekdays and weekends?
 Re-label the dates in weekdays and weekends (using subset)
-```{r, echo = TRUE, comment = ""}
-table(IMPUTED_DATA$day)
 
+```r
+table(IMPUTED_DATA$day)
+```
+
+```
+
+weekday weekend 
+  12960    4608 
+```
+
+```r
 #par(mfrow=c(2,1))
 plot(x= as.numeric(as.matrix(unique(DATA$interval))), y= matrix(unlist(wdays_steps_5min)), type = "l", col='red', ylab='steps weekdays', xlab='interval' , ylim=c(0,210))
 abline(h=max(wdays_steps_5min, na.rm=TRUE),  col=rgb(0.5,0,0,0.5))
 abline(v=as.numeric(as.matrix(unique(DATA$interval)))[which(wdays_steps_5min==max(wdays_steps_5min, na.rm=TRUE))], col=rgb(0.5,0,0,0.5))
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```r
 plot(x= as.numeric(as.matrix(unique(DATA$interval))), y= matrix(unlist(wend_steps_5min)), type = "l", col='blue', ylab='steps weekeneds', xlab='interval', ylim=c(0,210))
 abline(h=max(wend_steps_5min, na.rm=TRUE),  col=rgb(0.5,0,0,0.5))
 abline(v=as.numeric(as.matrix(unique(DATA$interval)))[which(wend_steps_5min==max(wend_steps_5min, na.rm=TRUE))], col=rgb(0.5,0,0,0.5))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
+
 # Conclusions
-We observe a similar spikes weekdays on `r as.numeric(as.matrix(unique(DATA$interval)))[which(wdays_steps_5min==max(wdays_steps_5min, na.rm=TRUE))]`, and weekends on to `r as.numeric(as.matrix(unique(DATA$interval)))[which(wend_steps_5min==max(wend_steps_5min, na.rm=TRUE))]`. After the maximum spike, the number of steps during weekdays are lower than on weekends. This is as expected during office hours.   
+We observe a similar spikes weekdays on 835, and weekends on to 915. After the maximum spike, the number of steps during weekdays are lower than on weekends. This is as expected during office hours.   
